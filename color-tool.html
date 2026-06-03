@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RGB → HEX変換ツール</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+textarea {
+    width: 100%;
+    height: 180px;
+    padding: 12px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+}
+
+.action-btn {
+    margin-top: 12px;
+    background: #2563eb;
+    color: white;
+}
+
+.copy-all {
+    background: #16a34a;
+    color: white;
+    margin-bottom: 16px;
+}
+
+.result {
+    margin-top: 24px;
+}
+
+.card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.color-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 12px;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+}
+
+.label {
+    width: 90px;
+    font-weight: bold;
+}
+
+.value {
+    font-family: monospace;
+    font-size: 16px;
+}
+
+.copy-btn {
+    background: #f3f4f6;
+}
+
+.success {
+    color: green;
+    margin-top: 10px;
+}
+</style>
+</head>
+<body>
+
+<h1>🎨 RGB → HEX変換ツール</h1>
+
+<textarea id="input"
+placeholder="rgb(35 40 71 / 70%)
+rgb(255 255 255 / 80%)
+rgb(0 0 0 / 50%)"></textarea>
+
+<br>
+
+<button class="action-btn" onclick="convert()">
+変換
+</button>
+
+<div id="result" class="result"></div>
+
+<script>
+
+function copyText(text) {
+    navigator.clipboard.writeText(text);
+}
+
+function convert() {
+
+    const resultArea = document.getElementById("result");
+    resultArea.innerHTML = "";
+
+    const lines = document
+        .getElementById("input")
+        .value
+        .split("\n")
+        .map(v => v.trim())
+        .filter(v => v);
+
+    const allResults = [];
+
+    lines.forEach((line, index) => {
+
+        const match = line.match(
+            /rgb\(\s*(\d+)\s+(\d+)\s+(\d+)\s*\/\s*(\d+)%\s*\)/i
+        );
+
+        if (!match) return;
+
+        const r = Number(match[1]);
+        const g = Number(match[2]);
+        const b = Number(match[3]);
+        const opacity = Number(match[4]);
+
+        const rgbHex =
+            [r,g,b]
+            .map(v =>
+                v.toString(16)
+                 .padStart(2,"0")
+                 .toUpperCase()
+            )
+            .join("");
+
+        const alphaHex =
+            Math.round(opacity / 100 * 255)
+            .toString(16)
+            .padStart(2,"0")
+            .toUpperCase();
+
+        const hex = "#" + rgbHex;
+        const hex8 = "#" + rgbHex + alphaHex;
+
+        allResults.push(
+`${hex} | ${opacity}% | ${hex8}`
+        );
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div
+                class="color-preview"
+                style="background:${hex};">
+            </div>
+
+            <div class="row">
+                <div class="label">HEX</div>
+                <div class="value">${hex}</div>
+                <button class="copy-btn"
+                    onclick="copyText('${hex}')">
+                    📋コピー
+                </button>
+            </div>
+
+            <div class="row">
+                <div class="label">透明度</div>
+                <div class="value">${opacity}%</div>
+                <button class="copy-btn"
+                    onclick="copyText('${opacity}%')">
+                    📋コピー
+                </button>
+            </div>
+
+            <div class="row">
+                <div class="label">HEX8</div>
+                <div class="value">${hex8}</div>
+                <button class="copy-btn"
+                    onclick="copyText('${hex8}')">
+                    📋コピー
+                </button>
+            </div>
+        `;
+
+        resultArea.appendChild(card);
+    });
+
+    if (allResults.length > 0) {
+
+        const copyAllBtn =
+            document.createElement("button");
+
+        copyAllBtn.className = "copy-all";
+
+        copyAllBtn.textContent =
+            "📋 全件コピー";
+
+        copyAllBtn.onclick = () =>
+            copyText(allResults.join("\n"));
+
+        resultArea.prepend(copyAllBtn);
+    }
+}
+
+</script>
+
+</body>
+</html>
